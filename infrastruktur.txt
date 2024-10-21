@@ -1,0 +1,236 @@
+Um eine Infrastruktur für Webhosting mit CentOS, OpenVZ, Docker und Kubernetes sowie eine Webpräsenz
+bereitzustellen, müssen wir mehrere Komponenten berücksichtigen. Die Architektur umfasst 
+Virtualisierung, Containerisierung, Orchestrierung und Web-Management.
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 1. Virtualisierungsschicht: **OpenVZ**
+### 2. Containerisierungsschicht: **Docker**
+### 3. Orchestrierung: **Kubernetes**
+### 4. Webpräsenz aufsetzen: **Nginx oder Apache**
+### 5. Überwachung und Logging
+### 6. Sicherheit und Verwaltung
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 1. Virtualisierungsschicht: **OpenVZ**
+OpenVZ ist eine Container-basierte Virtualisierung für Linux, das bedeutet, dass es auf Kernel-Ebene 
+mehrere isolierte Linux-Umgebungen ausführen kann., sogenannte Container. Jeder Container kann 
+unabhängig betrieben werden.
+
+**Installation von OpenVZ auf einem CentOS-Host**
+1. **CentOS vorbereiten**: Eine minimale CentOS Version installieren (z.B. CentOS 7 oder CentOS Stream)
+auf dem physischen Server oder virtuellen Server.
+2. **OpenVZ installieren**: Die Schritte könne je nach Version unterschiedlich sein. Im folgenden ein 
+typisches Beispiel:
+
+```bash
+yum update -y
+yum install vzctl vzquota ploop
+```
+3. **Kernel anpassen**: Da OpenVZ eine angepasste Kernel-Version benötigt, stellt man sicher, das man den 
+OpenVZ-Kernel installiert:
+
+```bash
+yum install vzkernel
+```
+4. **Neustarten und Kernel-Auswahl**:
+Man muss sicher stellen, dass das System mit dem OpenVZ-Kernel hochfährt.
+
+```bash
+reboot
+```
+
+5. **Netzwerk-Konfiguration**:
+Um den Netzwerkzugang für die Container zu ermöglichen, muss die Netzwerkkonfiguration (z.B. 
+das Aktivieren von Bridging) entsprechend angepasst werden.
+
+6. **Erstellen und Verwalten von Containern**:
+- Container erstellen:
+```bash
+vzctl create 101 --ostemplate centos-7-x86_64
+vzctl set 101 --ipadd 192.168.0.101 --save
+vzctl start 101
+vzctl enter 101
+```
+
+7. **Container-Monitoring und Ressourcenmanagement**:
+Verwenden von 'vzctl' um Container zu überwachen und deren Ressourcen (CPU, RAM) zu verwalten.
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 2. Containerisierungsschicht: **Docker**
+Docker bietet eine zusätzliche Ebene der Containerisierung, um Anwendungen in isolierten 
+Containern bereitzustellen. In Kombination mit OpenVZ kann man Docker innerhalb eines 
+OpenVZ-Containers ausführen, um noch spezifischere Anwendungsebenen zu isolieren.
+
+- **Docker-Installation auf CentOS/OpenVZ**
+1. **Docker installieren**:
+```bash
+yum install yum-utils
+yum-config-manager --add-repo http://download.docker.com/linux/centos/docker-ce.repo
+yum install docker-ce docker-ce-cli container.isolieren
+systemctl start docker
+systemctl enable docker 
+```
+
+2. **Testen von Docker**:
+```bash
+docker run hello-world
+```
+
+3. **Erstellen von Docker-Containern**:
+Nutz Docker zur Bereitstellung von Anwendungen wie Apache, Nginx oder anderen Webservern:
+```bash
+docker run -d -p 80:80 --name webserver nginx
+```
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 3. Orchestrierung: **Kubernetes**
+Für das Management und die Orchestrierung von Docker-Containern setzen wie Kubernetes ein.
+Kubernetes verwaltet mehrere Docker-Container über mehrere Hosts hinweg und bietet Funktionen
+wie Skalierbarkeit, Load-Ballancing und Selbstheilung.
+
+**Installieren von Kubernetes auf CentOS**:
+1. **Kubernetes-Repssitory hinzufügen**:
+```bash
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+     [kubernetes]
+     name=Kubernetes
+     baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+     enabled=1
+     gpgcheck=1
+     repo_gpgcheck=1
+     gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+            https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+     EOF
+```
+
+2. **Installation von kubeadm, kubelet und kubectl**:
+  
+```bash
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+systemctl enable --now kubelet
+```
+
+3. **Kubernetes-Cluster initialisieren**:
+Auf dem Master-Node:
+  
+```bash
+kubeadm init --pod-network-cidr=10.244.0.0/16
+```
+  
+Danach die Ausgaben des `kubeadm init`-Befehls befolgen (z.B. das Hinzufügen von Netzwerk-Plugins wie 
+Flannel oder Calico).
+
+4. **Node beitreten lassen**: Verwende den `kubeadm join`-Befehl auf den Worker-Nodes, um dem Cluster 
+beizutreten.
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 4. Webpräsenz aufsetzen: **Nginx oder Apache**
+Für die Webpräsenz kannst du entweder Nginx oder Apache verwenden, die auf Docker-Containern oder 
+innerhalb von Kubernetes-Deployments laufen können.
+
+**Nginx in einem Docker-Container bereitstellen**:
+
+```bash
+docker run -d -p 80:80 --name webserver nginx
+```
+
+**Webpräsenz im Kubernetes-Cluster bereitstellen**:
+1. **Deployment erstellen**:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: webserver-deployment
+    spec:
+        replicas: 3
+        selector:
+        matchLabels:
+            app: webserver
+            template:
+            metadata:
+                labels:
+                app: webserver
+                spec:
+                containers:
+                    - name: nginx
+                    image: nginx:latest
+                    ports:
+                    - containerPort: 80
+```
+
+Speichere die Datei als `webserver-deployment.yaml` und führe sie mit `kubectl` aus:
+  
+```bash
+kubectl apply -f webserver-deployment.yaml
+```
+
+2. **Service bereitstellen**:
+Um den Webserver von außen zugänglich zu machen, musst du einen Service erstellen:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: webserver-service
+spec:
+    type: NodePort
+    selector:
+        app: webserver
+    ports:
+        protocol: TCP
+        port: 80
+        targetPort: 80
+        nodePort: 30007
+```
+
+Erstelle und wende die Service-Konfiguration an:
+  
+```bash
+kubectl apply -f webserver-service.yaml
+```
+
+Danach kannst du die Webpräsenz unter der IP des Nodes und dem angegebenen `nodePort` (z.B. 30007) aufrufen.
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 5. Überwachung und Logging
+
+**Prometheus und Grafana**: Zur Überwachung der Container und des Kubernetes-Clusters kannst du Prometheus 
+und Grafana verwenden. Diese Tools bieten Einblicke in die Ressourcennutzung und die Verfügbarkeit des 
+Systems.
+
+**ELK-Stack (Elasticsearch, Logstash, Kibana)**: Zum Sammeln und Analysieren von Logs bietet der ELK-Stack 
+eine robuste Lösung.
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### 6. Sicherheit und Verwaltung
+**Firewall**: Verwende `firewalld` auf CentOS, um Ports für Docker, Kubernetes und die Webdienste 
+freizugeben.
+
+```bash
+yum install certbot
+certbot --nginx
+```
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+### Zusammenfassung
+Insgesamt setzt sich diese Architektur aus OpenVZ als Virtualisierungsebene, Docker als 
+Containerisierungsplattform und Kubernetes als Orchestrierungsebene zusammen. Nginx oder Apache dienen der 
+Webserver-Bereitstellung, während du Monitoring-Tools wie Prometheus/Grafana für die Überwachung des 
+Systems einsetzen kannst.
