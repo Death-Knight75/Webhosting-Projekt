@@ -1,0 +1,72 @@
+INSTALLATION
+Docker Desktop ist für Mac, Linux und Windows verfügbar
+https://docs.docker.com/desktop
+Sehen Sie sich Beispielprojekte an, die Docker verwenden
+https://github.com/docker/awesome-compose
+Weitere Informationen zur Verwendung von Docker finden Sie in unseren Dokumenten
+https://docs.docker.com
+
+BILDER
+Docker-Images sind ein leichtes, eigenständiges, ausführbares Paket
+von Software, die alles enthält, was zum Ausführen einer Anwendung erforderlich ist:
+Code, Laufzeit, Systemtools, Systembibliotheken und Einstellungen.
+
+Erstellen Sie ein Image aus einer Docker-Datei
+docker build -t <image_name>
+Erstellen Sie ein Image aus einer Docker-Datei ohne Cache
+docker build -t <image_name> . –no-cache
+Lokale Bilder auflisten
+docker images
+Ein Bild löschen
+docker rmi <image_name>
+Entfernen Sie alle nicht verwendeten Bilder
+docker image prune 
+
+DOCKER-HUB
+Docker Hub ist ein von Docker bereitgestellter Dienst zum Suchen und Teilen. Containerbilder mit Ihrem Team. Erfahren Sie mehr und finden Sie Bilder unter: https://hub.docker.com
+
+Melden Sie sich bei Docker an
+docker login -u <username>
+Veröffentlichen Sie ein Bild im Docker Hub
+docker push <username>/<image_name>
+Suchen Sie im Hub nach einem Bild
+docker search <image_name>
+Mit Pull Rufen Sie ein Image von einem Docker Hub ab
+docker pull <image_name>
+
+GENERAL COMMANDS
+Starten Sie den Docker-Daemon
+docker -d
+Holen Sie sich Hilfe zu Docker. Kann auch –help für alle Unterbefehle verwenden
+docker --help
+Systemweite Informationen anzeigen
+docker info
+
+CONTAINERS
+Ein Container ist eine Laufzeitinstanz eines Docker-Images. Ein Container läuft unabhängig von der Infrastruktur immer gleich.
+Container isolieren Software von ihrer Umgebung und stellen sicher
+dass es trotz Unterschieden z. B. zwischen einheitlich funktioniert
+Entwicklung und Inszenierung.
+
+Erstellen Sie einen Container aus einem Image und führen Sie ihn mit einem benutzerdefinierten Namen aus:
+docker run --name <container_name> <image_name>
+Führen Sie einen Container aus und veröffentlichen Sie die Ports eines Containers auf dem Host.
+docker run -p <host_port>:<container_port> <image_name>
+Führen Sie einen Container im Hintergrund aus
+docker run -d <image_name>
+Starten oder stoppen Sie einen vorhandenen Container:
+docker start|stop <container_name> (or <container-id>)
+Entfernen Sie einen gestoppten Container:
+docker rm <container_name>
+Öffnen Sie eine Shell in einem laufenden Container:
+docker exec -it <container_name> sh
+Rufen Sie die Protokolle eines Containers ab und verfolgen Sie sie:
+docker logs -f <container_name>
+So prüfen Sie einen laufenden Container:
+docker inspect <container_name> (or <container_id>)
+So listen Sie aktuell ausgeführte Container auf:
+docker ps
+Listen Sie alle Docker-Container auf (laufend und gestoppt):
+docker ps --all
+Statistiken zur Ressourcennutzung anzeigen
+docker container stats

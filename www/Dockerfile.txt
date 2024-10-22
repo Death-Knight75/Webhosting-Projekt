@@ -1,0 +1,20 @@
+# Ein Python v.3.9-slim Image als Basis verwendet
+FROM python:3.9-slim
+
+# Arbeitsverzeichnis definiert
+WORKDIR /docker-app
+
+# Kopiere package.json in das Arbeitsverzeichnis
+COPY . .
+
+# Installiere Abhaengigkeiter
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Kopiere den rest der App in das Arbeitsverzeichnis
+COPY . .
+
+# Definiere den Port 8080
+EXPOSE 8080
+
+# Definiere den Startbefehl der App
+CMD ["python", "5_conditions.py"]
