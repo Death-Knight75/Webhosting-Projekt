@@ -1,0 +1,25 @@
+1. Grundlagen: Was ist OpenVZ?
+2. Voraussetzungen
+3. Server vorbereiten
+  3.1 Server-Betriebssystem installieren
+  3.2 OpenVZ installieren
+4. Virtuelle Maschinen (Container) einrichten
+  4.1 Vorlagen (Templates) herunterladen
+  4.2 Container erstellen
+  4.3 Container konfigurieren 
+  4.4 Container starten
+5. Webhosting-Dienste installieren
+  5.1 Webserver (Apache/Nginx) installieren
+  5.2 PHP und MySQL/MariaDB installieren
+  5.3 Domain und DNS konfigurieren
+6. Verwaltungs- und Automatisierungstools installieren
+  6.1 Web-Hosting-Kontrollpanel (Optional)
+  6.2 Automatisierung mit WHMCS
+7. Sicherheit und Backups
+  7.1 Firewall konfigurieren
+  7.2 SSL-Zertifikate (HTTPS)
+  7.3 Backups einrichten
+8. Anbieten der Webhosting-Dienste
+  8.1 Preismodell festlegen
+  8.2 Website und Zahlungsabwicklung
+  8.3 Kundensupport
